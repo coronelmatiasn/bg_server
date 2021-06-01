@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
-var auth = require('../utils/auth');
+const express = require('express');
+const router = express.Router();
+const auth = require('../utils/auth');
 
 module.exports = router;
