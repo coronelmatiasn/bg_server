@@ -37,14 +37,54 @@ const createCharacter = async characterObject => {
         await client.query(userCharText, userCharValues);
 
         await client.query('COMMIT');
-    } catch (e) {
+    } catch (err) {
         await client.query('ROLLBACK');
-        throw e;
+        throw err;
+    } finally {
+        client.end();
+    }
+}
+
+const getUserCharacters = async uid => {
+    var characters = [];
+
+    const client = new Client();
+
+    client.connect();
+
+    try {
+        const characterData = await client.query(`
+            SELECT uc.character_id, c.name, c.level, c.experience, c.gold
+            FROM "UserCharacter" AS uc 
+            LEFT JOIN "Character" AS c 
+            ON uc.character_id = c.character_id
+            WHERE uc.uid = $1
+        `, [ uid ]);
+
+        for (var character of characterData.rows) {
+            const characterAttributes = await client.query(`
+                SELECT ca.attribute_id, ca.value, a.name, a.description
+                FROM "CharacterAttribute" AS ca 
+                LEFT JOIN "Attribute" AS a 
+                ON ca.attribute_id = a.attribute_id
+                WHERE character_id = $1
+            `, [ character.character_id ]);
+
+            characters.push({
+                ...character,
+                characterAttributes: [...characterAttributes.rows]
+            });
+        }
+
+        return characters;
+    } catch (err) {
+        throw err;
     } finally {
         client.end();
     }
 }
 
 module.exports = {
-    createCharacter
+    createCharacter,
+    getUserCharacters
 }

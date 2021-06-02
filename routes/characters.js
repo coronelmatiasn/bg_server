@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const checkAuth = require('../middlewares/checkAuth');
-const { createCharacter } = require('../utils/character');
+const { createCharacter, getUserCharacters } = require('../utils/character');
 
 router.use(checkAuth);
 
@@ -18,6 +18,15 @@ router.route("/")
             res.send(400).send("Se ha producido un error.");
         }
         
+    })
+    .get(async (req, res) => {
+        try {
+            const characters = await getUserCharacters(req.uid);
+
+            res.status(200).send(characters);
+        } catch (err) {
+            res.status(400).send(err);
+        }
     });
 
 module.exports = router;
