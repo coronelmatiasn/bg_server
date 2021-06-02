@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const checkAuth = require('../middlewares/checkAuth');
-const { createCharacter, getUserCharacters } = require('../utils/character');
+const { createCharacter, getUserCharacters, getCharacter } = require('../utils/character');
 
 router.use(checkAuth);
 
@@ -24,6 +24,19 @@ router.route("/")
             const characters = await getUserCharacters(req.uid);
 
             res.status(200).send(characters);
+        } catch (err) {
+            res.status(400).send(err);
+        }
+    });
+
+router.route("/:charId")
+    .get(async (req, res) => {
+        const { charId } = req.params;
+
+        try {
+            const character = await getCharacter(parseInt(charId));
+
+            res.status(200).send(character);
         } catch (err) {
             res.status(400).send(err);
         }

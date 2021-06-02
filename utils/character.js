@@ -62,17 +62,11 @@ const getUserCharacters = async uid => {
         `, [ uid ]);
 
         for (var character of characterData.rows) {
-            const characterAttributes = await client.query(`
-                SELECT ca.attribute_id, ca.value, a.name, a.description
-                FROM "CharacterAttribute" AS ca 
-                LEFT JOIN "Attribute" AS a 
-                ON ca.attribute_id = a.attribute_id
-                WHERE character_id = $1
-            `, [ character.character_id ]);
+            var attributes = await getCharacterAttributes(character.character_id);
 
             characters.push({
                 ...character,
-                characterAttributes: [...characterAttributes.rows]
+                characterAttributes: [...attributes]
             });
         }
 
@@ -84,7 +78,55 @@ const getUserCharacters = async uid => {
     }
 }
 
+const getCharacter = async id => {
+    var characters = [];
+
+    const client = new Client();
+
+    client.connect();
+
+    try {
+        const characterData = await client.query(`
+            SELECT character_id, name, level, experience, gold
+            FROM "Character"
+            WHERE character_id = $1
+        `, [ id ]);
+
+        for (var character of characterData.rows) {
+            var attributes = await getCharacterAttributes(character.character_id);
+
+            characters.push({
+                ...character,
+                characterAttributes: [...attributes]
+            });
+        }
+
+        return characters;
+    } catch (err) {
+        throw err;
+    } finally {
+        client.end();
+    }
+}
+
+const getCharacterAttributes = async charId => {
+    const client = new Client();
+
+    client.connect();
+
+    const characterAttributes = await client.query(`
+        SELECT ca.attribute_id, ca.value, a.name, a.description
+        FROM "CharacterAttribute" AS ca 
+        LEFT JOIN "Attribute" AS a 
+        ON ca.attribute_id = a.attribute_id
+        WHERE character_id = $1
+    `, [ charId ]);
+
+    return characterAttributes.rows;
+}
+
 module.exports = {
     createCharacter,
-    getUserCharacters
+    getUserCharacters,
+    getCharacter
 }
