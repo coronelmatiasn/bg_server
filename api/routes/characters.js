@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const checkAuth = require('../middlewares/checkAuth');
-const { createCharacter, getUserCharacters, getCharacter } = require('../utils/character');
+const { createCharacter, getUserCharacters, getCharacter } = require('../../services/character');
 
 router.use(checkAuth);
 
