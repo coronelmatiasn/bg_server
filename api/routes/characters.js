@@ -8,16 +8,17 @@ router.use(checkAuth);
 router.route("/")
     .post(async (req, res) => {
         try {
-            createCharacter({
+            const data = {
                 name: req.body.name,
                 uid: req.uid
-            });
+            }
 
-            res.send(201).send("Personaje creado!");
+            const character = await createCharacter(data);
+
+            res.send(201).send(character);
         } catch (err) {
-            res.send(400).send("Se ha producido un error.");
+            res.send(400).send(err);
         }
-        
     })
     .get(async (req, res) => {
         try {

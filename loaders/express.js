@@ -6,8 +6,6 @@ var logger = require('morgan');
 var charactersRouter = require('../api/routes/characters');
 
 module.exports = ({ app }) => {
-    var app = express();
-
     app.use(logger('dev'));
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));

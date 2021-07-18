@@ -1,48 +1,35 @@
-const { Client } = require("pg");
+const admin = require('firebase-admin');
 
-const createCharacter = async characterObject => {
-    const { name, uid } = characterObject;
+admin.initializeApp({
+    credential: admin.credential.applicationDefault()
+});
 
-    const client = new Client();
+const db = admin.firestore();
 
-    client.connect();
-
+const createCharacter = async ({ uid, name }) => {
     try {
-        await client.query('BEGIN');
-        
-        const characterText = `
-            INSERT INTO "Character"(character_type_id, name, level, experience, gold)
-            VALUES (1, $1, 1, 0, 0)
-            RETURNING character_id
-        `;
-        const res = await client.query(characterText, [ name ]);
+        const character = {
+            userId: uid,
+            name: name,
+            level: 1,
+            experience: 0,
+            gold: 0,
+            attributes: {
+                strength: 5,
+                dexterity: 5,
+                agility: 5,
+                constitution: 5,
+                charisma: 5,
+                inteligence: 5
+            }
+        }
 
-        const charAttribText = `
-            INSERT INTO "CharacterAttribute"(character_id, attribute_id, value)
-            VALUES ($1, 1, 5),
-                   ($1, 2, 5),
-                   ($1, 3, 5),
-                   ($1, 4, 5),
-                   ($1, 5, 5),
-                   ($1, 6, 5)
-        `;
-        const charAttribValues = [res.rows[0].character_id];
-        await client.query(charAttribText, charAttribValues);
-
-        const userCharText = `
-            INSERT INTO "UserCharacter"(character_id, uid)
-            VALUES ($1, $2)
-        `;
-        const userCharValues = [res.rows[0].character_id, uid];
-        await client.query(userCharText, userCharValues);
-
-        await client.query('COMMIT');
+        await db.collection('characters').add(character);
+    
+        return character;
     } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.end();
-    }
+        throw new Error(err);
+    } 
 }
 
 const getUserCharacters = async uid => {
