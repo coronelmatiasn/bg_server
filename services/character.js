@@ -28,41 +28,27 @@ const createCharacter = async ({ uid, name }) => {
     
         return character;
     } catch (err) {
-        throw new Error(err);
+        throw err;
     } 
 }
 
 const getUserCharacters = async uid => {
     var characters = [];
 
-    const client = new Client();
-
-    client.connect();
-
     try {
-        const characterData = await client.query(`
-            SELECT uc.character_id, c.name, c.level, c.experience, c.gold
-            FROM "UserCharacter" AS uc 
-            LEFT JOIN "Character" AS c 
-            ON uc.character_id = c.character_id
-            WHERE uc.uid = $1
-        `, [ uid ]);
+        const charaRef = db.collection('characters');
+        const snapshot = await charaRef.where('userId', '==', uid).get();
+        
+        if (snapshot.empty) return;
+ 
+        snapshot.forEach(doc => {
+          characters.push(doc.data());
+        });
 
-        for (var character of characterData.rows) {
-            var attributes = await getCharacterAttributes(character.character_id);
-
-            characters.push({
-                ...character,
-                characterAttributes: [...attributes]
-            });
-        }
-
-        return characters;
+        return characters
     } catch (err) {
         throw err;
-    } finally {
-        client.end();
-    }
+    } 
 }
 
 const getCharacter = async id => {
