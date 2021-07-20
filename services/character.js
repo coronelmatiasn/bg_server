@@ -52,34 +52,20 @@ const getUserCharacters = async uid => {
 }
 
 const getCharacter = async id => {
-    var characters = [];
-
-    const client = new Client();
-
-    client.connect();
+    var character;
 
     try {
-        const characterData = await client.query(`
-            SELECT character_id, name, level, experience, gold
-            FROM "Character"
-            WHERE character_id = $1
-        `, [ id ]);
+        const charaRef = db.collection('characters').doc(id);
+        const doc = await charaRef.get();
+        
+        if (!doc.exists) return;
+ 
+        character = doc.data();
 
-        for (var character of characterData.rows) {
-            var attributes = await getCharacterAttributes(character.character_id);
-
-            characters.push({
-                ...character,
-                characterAttributes: [...attributes]
-            });
-        }
-
-        return characters;
+        return character;
     } catch (err) {
         throw err;
-    } finally {
-        client.end();
-    }
+    } 
 }
 
 const getCharacterAttributes = async charId => {

@@ -35,7 +35,7 @@ router.route("/:charId")
         const { charId } = req.params;
 
         try {
-            const character = await getCharacter(parseInt(charId));
+            const character = await getCharacter(charId);
 
             res.status(200).send(character);
         } catch (err) {
